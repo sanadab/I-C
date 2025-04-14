@@ -1,0 +1,25 @@
+{
+    "name": "track-server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "nodemon src/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@react-native-community/masked-view": "^0.1.11",
+        "bcrypt": "^5.1.0",
+        "expo": "^52.0.21",
+        "express": "^4.21.2",
+        "jsonwebtoken": "^9.0.0",
+        "mongoose": "^6.9.0",
+        "nodemon": "^3.1.9",
+        "react-native-paper": "^4.12.8",
+        "react-navigation": "^4.4.4",
+        "react-navigation-material-bottom-tabs": "^2.3.5",
+        "react-navigation-stack": "^2.10.4"
+    }
+}
