@@ -1,12 +1,12 @@
-require("../tracks/src/models/User");
-require("../tracks/src/models/Track");
+require("../src/models/User");
+require("../src/models/Track");
 
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
-const authRoutes = require("../tracks/src/routes/authRoutes");
-const trackRoutes = require("../tracks/src/routes/trackRoutes");
+const authRoutes = require("../src/routes/authRoutes");
+const trackRoutes = require("../src/routes/trackRoutes");
 
 const app = express();
 
@@ -31,8 +31,8 @@ mongoose.connection.on("connected", () => {
     console.log("✅ Connected to mongo instance");
 
     // Start server only after successful MongoDB connection
-    app.listen(3003, () => {
-        console.log("🚀 Server listening on port 3003");
+    app.listen(3008, () => {
+        console.log("🚀 Server listening on port 3008");
     });
 });
 
