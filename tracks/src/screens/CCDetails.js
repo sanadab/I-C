@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, TextInput, Button, FlatList, StyleSheet, Alert } from "react-native";
 import axios from "axios";
 import { Context as AuthContext } from '../context/AuthContext';
 import { create } from "../models/Details";
 
-const CareerCounselorProfile = () => {
+const CCDetails = () => {
   const { state, Details } = useContext(AuthContext);
   const [name, setName] = useState("");
   const [expertise, setExpertise] = useState("");
@@ -29,27 +29,60 @@ const CareerCounselorProfile = () => {
     }
   };
 
-  
+  const handleSubmit = () => {
+    if (!name || !expertise) {
+      Alert.alert("Error", "Please fill in all required fields.");
+      return;
+    }
+
+    Details({ name, expertise, courses, testimonials });
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Career Counselor Profile</Text>
-      <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
-      <TextInput style={styles.input} placeholder="Expertise" value={expertise} onChangeText={setExpertise} />
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Expertise"
+        value={expertise}
+        onChangeText={setExpertise}
+      />
 
       <Text style={styles.sectionTitle}>Courses Offered</Text>
-      <TextInput style={styles.input} placeholder="Add Course" value={course} onChangeText={setCourse} />
+      <TextInput
+        style={styles.input}
+        placeholder="Add Course"
+        value={course}
+        onChangeText={setCourse}
+      />
       <Button title="Add Course" onPress={addCourse} />
-      <FlatList data={courses} renderItem={({ item }) => <Text style={styles.listItem}>{item}</Text>} keyExtractor={(item, index) => index.toString()} />
+      <FlatList
+        data={courses}
+        renderItem={({ item }) => <Text style={styles.listItem}>{item}</Text>}
+        keyExtractor={(item, index) => index.toString()}
+      />
 
       <Text style={styles.sectionTitle}>Testimonials</Text>
-      <TextInput style={styles.input} placeholder="Add Testimonial" value={testimonial} onChangeText={setTestimonial} />
+      <TextInput
+        style={styles.input}
+        placeholder="Add Testimonial"
+        value={testimonial}
+        onChangeText={setTestimonial}
+      />
       <Button title="Add Testimonial" onPress={addTestimonial} />
-      <FlatList data={testimonials} renderItem={({ item }) => <Text style={styles.listItem}>{item}</Text>} keyExtractor={(item, index) => index.toString()} />
+      <FlatList
+        data={testimonials}
+        renderItem={({ item }) => <Text style={styles.listItem}>{item}</Text>}
+        keyExtractor={(item, index) => index.toString()}
+      />
 
-      <Button title="Submit" onPress={() => {
-            Details({ name, expertise,course,testimonial });
-          }} />
+      <Button title="Submit" onPress={handleSubmit} />
     </View>
   );
 };
@@ -81,4 +114,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CareerCounselorProfile;
+export default CCDetails;

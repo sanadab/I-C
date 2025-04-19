@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = mongoose.model('User');
+// const Details = mongoose.model('Details');
+const Details = require('../models/Details');
+const requireAuth = require('../middlewares/requireAuth');
 
 const router = express.Router();
 
@@ -22,17 +25,37 @@ router.post("/signup", async(req, res) => {
         res.status(422).send(err.message);
     }
 });
-router.post('/Details', async(req, res) => {
-    const { name, expertise, course, testimonial } = req.body; // Match schema
+router.get('/Details', requireAuth, async(req, res) => {
+    const userId = req.user.id;
 
     try {
-        const user = new Details({ name, expertise, course, testimonial });
+        const details = await Details.findOne({ userId }); // Or whatever your logic is
+        if (!details) return res.status(404).send('No details found for this user');
+        res.send(details);
+    } catch (err) {
+        res.status(500).send('Server error');
+    }
+});
+
+router.post('/Details', requireAuth, async(req, res) => {
+    console.log('Request Body:', req.body);
+    const { name, expertise, courses, testimonials } = req.body;
+
+    try {
+        const user = new Details({
+            userId: req.user._id, // This should work now
+            name,
+            expertise,
+            courses,
+            testimonials
+        });
+
         await user.save();
 
-        const token = jwt.sign({ userId: user._id }, 'MY_SECRET_KEY', { expiresIn: '1h' });
-        res.send({ token });
+        return res.send({ message: 'Details saved successfully!' });
     } catch (err) {
-        res.status(422).send({ error: err.message });
+        console.error("❌ Error saving details:", err);
+        return res.status(422).send({ error: err.message });
     }
 });
 

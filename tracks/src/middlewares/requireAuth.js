@@ -15,10 +15,11 @@ module.exports = (req, res, next) => {
             return res.status(401).send({ error: 'You must be logged in.' });
         }
 
+        console.log('Decoded payload:', payload); // Debug line to check payload
         const { userId } = payload;
 
-        const user = await User.findById(userId);
-        req.user = user;
+        req.user = await User.findById(userId);
+
         next();
     });
 };

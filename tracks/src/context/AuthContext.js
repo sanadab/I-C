@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createDataContext from "./createDataContext";
 import trackerApi from "../api/tracker";
-
+import { Alert } from 'react-native';
 
 
 
@@ -39,15 +39,29 @@ const signup = (dispach) => async({ fullname, username, email, password, role })
     //if we sign up ,modify our state,and say that we are authenticated
 };
 
-const Details = (dispatch) => async({ name, expertise, course, testimonial }) => {
+const Details = (dispatch) => async ({ name, expertise, courses, testimonials }) => {
     try {
-        const response = await trackerApi.post('/Details', { name, expertise, course, testimonial });
+        const token = await AsyncStorage.getItem('token'); 
 
-        await AsyncStorage.setItem('token', response.data.token);
-        dispatch({ type: 'Details', payload: response.data.token });
+        const response = await trackerApi.post(
+            '/Details',
+            { name, expertise, courses, testimonials },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`, 
+                },
+            }
+        );
+
+        dispatch({ type: 'DetailsSuccess' }); 
+
+        Alert.alert("Success", "Details submitted successfully!");
     } catch (err) {
-        console.error('Sign-up error:', err.message);
-        dispatch({ type: 'add_error', payload: 'Something went wrong with sign up' });
+        console.error('Details error:', err.message);
+        dispatch({
+            type: 'add_error',
+            payload: 'Something went wrong with details submit',
+        });
     }
 };
 
@@ -103,5 +117,5 @@ const signout = (dispach) => {
     }
 };
 export const { Provider, Context } = createDataContext(
-    authReduser, { signup, signin, signout, resetpass }, { token: null, errorMessage: '' }
+    authReduser, { signup, signin, signout, resetpass, Details }, { token: null, errorMessage: '' }
 );
