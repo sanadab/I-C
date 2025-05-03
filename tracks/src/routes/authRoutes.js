@@ -25,17 +25,15 @@ router.post("/signup", async(req, res) => {
         res.status(422).send(err.message);
     }
 });
-router.get('/Details', requireAuth, async(req, res) => {
-    const userId = req.user.id;
-
-    try {
-        const details = await Details.findOne({ userId }); // Or whatever your logic is
-        if (!details) return res.status(404).send('No details found for this user');
-        res.send(details);
-    } catch (err) {
-        res.status(500).send('Server error');
-    }
-});
+// router.get('/all-counselors', async(req, res) => {
+//     try {
+//         const counselors = await Details.find();
+//         res.status(200).json(counselors);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).send('Server error');
+//     }
+// });
 
 router.post('/Details', requireAuth, async(req, res) => {
     console.log('Request Body:', req.body);
