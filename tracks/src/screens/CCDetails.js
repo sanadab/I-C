@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, FlatList, StyleSheet, Alert } from "reac
 import axios from "axios";
 import { Context as AuthContext } from '../context/AuthContext';
 import { create } from "../models/Details";
+import Spacer from "../components/Spacer";
 
 const CCDetails = () => {
   const { state, Details } = useContext(AuthContext);
@@ -40,6 +41,10 @@ const CCDetails = () => {
 
   return (
     <View style={styles.container}>
+      <Spacer></Spacer>
+      <Spacer></Spacer>
+      <Spacer></Spacer>
+      <Spacer></Spacer>
       <Text style={styles.title}>Career Counselor Profile</Text>
       <TextInput
         style={styles.input}
@@ -90,28 +95,39 @@ const CCDetails = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F9FAFB",
     padding: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 20,
+    textAlign: "center",
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 15,
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginTop: 20,
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 5,
+    borderColor: "#D1D5DB",
+    backgroundColor: "#FFFFFF",
+    padding: 12,
+    marginVertical: 6,
+    borderRadius: 8,
+    fontSize: 16,
   },
   listItem: {
     fontSize: 16,
-    padding: 5,
+    color: "#374151",
+    backgroundColor: "#E5E7EB",
+    padding: 10,
+    marginVertical: 4,
+    borderRadius: 6,
   },
 });
-
 export default CCDetails;

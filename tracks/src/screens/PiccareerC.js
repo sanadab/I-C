@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    ActivityIndicator,
+    TouchableOpacity,
+    TextInput,
+} from 'react-native';
 import trackerApi from '../api/tracker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
@@ -33,28 +41,33 @@ const PiccareerC = ({ navigation }) => {
     const handleCategoryChange = (value) => {
         setSelectedCategory(value);
         if (value) {
-            navigation.navigate(value); // Assuming category screens
+            navigation.navigate(value);
         }
     };
 
     const handleSearch = (query) => {
         setSearchQuery(query);
-        if (query === '') {
-            setFilteredCounselors(counselors);
-        } else {
-            const filtered = counselors.filter((counselor) =>
+        const filtered = query
+            ? counselors.filter((counselor) =>
                 counselor.name.toLowerCase().includes(query.toLowerCase()) ||
                 counselor.expertise.toLowerCase().includes(query.toLowerCase())
-            );
-            setFilteredCounselors(filtered);
-        }
+            )
+            : counselors;
+
+        setFilteredCounselors(filtered);
     };
 
     const handleSignout = () => {
-        // Handle signout here if needed
-        navigation.navigate('loginFlow'); // Navigate to the login flow or root
+        navigation.navigate('loginFlow');
     };
 
+const handleChat = (counselorId, counselorName) => {
+  console.log('Navigating with:', counselorId, counselorName); // Debug log
+  navigation.navigate('ChatScreen', { 
+    counselorId,
+    counselorName
+  });
+};
     if (loading) {
         return (
             <View style={styles.loaderContainer}>
@@ -90,7 +103,6 @@ const PiccareerC = ({ navigation }) => {
                         { label: 'Artificial Intelligence', value: 'AI' },
                         { label: 'Software Engineering', value: 'Software Engineer' },
                         { label: 'Cybersecurity', value: 'Cybersecurity' },
-                        // Add other categories as needed
                     ]}
                     placeholder={{ label: 'Choose a category...', value: null }}
                     style={{
@@ -105,7 +117,7 @@ const PiccareerC = ({ navigation }) => {
                 <Text style={styles.title}>Career Counselors</Text>
             </View>
 
-            {/* Search Bar */}
+            {/* Search */}
             <View style={styles.searchContainer}>
                 <TextInput
                     style={styles.searchInput}
@@ -115,13 +127,15 @@ const PiccareerC = ({ navigation }) => {
                 />
             </View>
 
-            {/* Main Content */}
+            {/* Content */}
             <ScrollView contentContainerStyle={styles.container}>
                 {filteredCounselors.length === 0 ? (
-                    <Text style={styles.errorText}>No counselors found matching your search criteria.</Text>
+                    <Text style={styles.errorText}>
+                        No counselors found matching your search criteria.
+                    </Text>
                 ) : (
                     filteredCounselors.map((counselor, index) => (
-                        <View key={index} style={styles.card}>
+                        <View key={counselor._id || index} style={styles.card}>
                             <Text style={styles.header}>{counselor.name}</Text>
 
                             <Text style={styles.subHeader}>Expertise:</Text>
@@ -138,6 +152,14 @@ const PiccareerC = ({ navigation }) => {
                                     <Text style={styles.text}>{testimonial}</Text>
                                 </View>
                             ))}
+
+                            <TouchableOpacity
+                                style={styles.chatButton}
+                                onPress={() => handleChat(counselor._id, counselor.name)}
+                            
+                                >
+                                <Text style={styles.chatButtonText}>Chat with Counselor</Text>
+                            </TouchableOpacity>
                         </View>
                     ))
                 )}
@@ -259,6 +281,19 @@ const styles = StyleSheet.create({
         marginTop: 8,
         borderLeftWidth: 4,
         borderLeftColor: '#3b82f6',
+    },
+    chatButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    chatButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
 

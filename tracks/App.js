@@ -1,16 +1,18 @@
-import { LogBox } from "react-native";
-
+import { LogBox, StyleSheet } from "react-native";
 LogBox.ignoreLogs(["Support for defaultProps will be removed"]);
+
 import React from "react";
-import {StyleSheet} from 'react-native';
 import {
-    createAppContainer,
-    createSwitchNavigator
-} from 'react-navigation';
-import SignupScreen from "./src/screens/SignupScreen";
-import SigninScreen from "./src/screens/SigninScreen";
+  createAppContainer,
+  createSwitchNavigator
+} from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
 import { createMaterialBottomTabNavigator } from "react-navigation-material-bottom-tabs";
+import Icon from "react-native-vector-icons/MaterialIcons";
+
+// Screens
+import SignupScreen from "./src/screens/SignupScreen";
+import SigninScreen from "./src/screens/SigninScreen";
 import UserProfile from "./src/screens/UserProfile";
 import Quiz from "./src/screens/HomeScreen";
 import PiccareerC from "./src/screens/PiccareerC";
@@ -40,109 +42,126 @@ import HR1 from "./src/screens/HR";
 import HRQuiz2 from "./src/screens/HRQuiz2";
 import HRQuiz3 from "./src/screens/HRQuiz3";
 import SignUp2 from "./src/screens/SignupScreen2";
+import ChatScreen from "./src/screens/ChatScreen";
 import careercounselor from "./src/screens/careercounselorProfile";
 import BackendQuiz1 from "./src/screens/BackendQuiz1";
 import BackendQuiz2 from "./src/screens/BackendQuiz2";
 import BackendQuiz3 from "./src/screens/BackendQuiz3";
 import Examp from "./src/screens/examp";
-import { Provider as AuthProvider } from './src/context/AuthContext';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Import Material Icons
+import { Provider as AuthProvider } from "./src/context/AuthContext";
 
 const ExamStack = createStackNavigator({
-    Exam: Examp,
-    IT: IT1,
-    Backend:Backend,
-    Fullstack:Fullstack,
-    QualityAssurance:QualityAssurance,
-    HR:HumanResources,
-    HR1:HR1,
-    FrontendQ1:FrontendQ1,
-    Behavioral:Behavioral,
-    Exam1:Exam1,
-    BackendQuiz1:BackendQuiz1,
-    BackendQuiz2:BackendQuiz2,
-    BackendQuiz3:BackendQuiz3,
-    FrontendQuiz1:FrontendQuiz1,
-    FrontendQuiz2:FrontendQuiz2,
-    FrontendQuiz3:FrontendQuiz3,
-    FullstackQuiz1:FullstackQuiz1,
-    FullstackQuiz2:FullstackQuiz2,
-    FullstackQuiz3:FullstackQuiz3,
-    ITQuiz1:ITQuiz1,
-    ITQuiz2:ITQuiz2,
-    ITQuiz3:ITQuiz3,
-    QAQuiz1:QAQuiz1,
-    QAQuiz2:QAQuiz2,
-    QAQuiz3:QAQuiz3,
-    HRQuiz2:HRQuiz2,
-    HRQuiz3:HRQuiz3,
+  Exam: Examp,
+  IT: IT1,
+  Backend,
+  Fullstack,
+  QualityAssurance,
+  HR: HumanResources,
+  HR1,
+  FrontendQ1,
+  Behavioral,
+  Exam1,
+  BackendQuiz1,
+  BackendQuiz2,
+  BackendQuiz3,
+  FrontendQuiz1,
+  FrontendQuiz2,
+  FrontendQuiz3,
+  FullstackQuiz1,
+  FullstackQuiz2,
+  FullstackQuiz3,
+  ITQuiz1,
+  ITQuiz2,
+  ITQuiz3,
+  QAQuiz1,
+  QAQuiz2,
+  QAQuiz3,
+  HRQuiz2,
+  HRQuiz3,
 });
 
-const mainFlow = createMaterialBottomTabNavigator({
-  Profile: {
+const ChatStack = createStackNavigator({
+  ChatScreen: {
+    screen: ChatScreen,
+    navigationOptions: ({ navigation }) => ({
+      title: navigation.getParam('counselorName', 'Chat')
+    })
+  }
+});
+
+const mainFlow = createMaterialBottomTabNavigator(
+  {
+    Profile: {
       screen: UserProfile,
       navigationOptions: {
-          tabBarIcon: ({ color, size }) => (
-              <Icon name="home" size={30} color={color} /> 
-          ),
+        tabBarIcon: ({ color }) => (
+          <Icon name="home" size={30} color={color} />
+        ),
       },
-  },
-  Exam: {
+    },
+    Exam: {
       screen: ExamStack,
       navigationOptions: {
-          tabBarIcon: ({ color, size }) => (
-              <Icon name="assignment" size={30} color={color} /> 
-          ),
+        tabBarIcon: ({ color }) => (
+          <Icon name="assignment" size={30} color={color} />
+        ),
       },
-  },
-  CareerAdvisor: {
+    },
+    PiccareerC: {
       screen: PiccareerC,
       navigationOptions: {
-          tabBarIcon: ({ color, size }) => (
-              <Icon name="person" size={30} color={color} /> // Career Advisor icon (example)
-          ),
+        tabBarIcon: ({ color }) => (
+          <Icon name="person" size={30} color={color} />
+        ),
       },
+    },
+     Chat: {
+      screen: ChatStack,
+      navigationOptions: {
+        tabBarIcon: ({ color }) => (
+          <Icon name="chat" size={30} color={color} />
+        ),
+      },
+    },
   },
-}, {
-  activeTintColor: 'black',
-  inactiveTintColor: 'white',
-  barStyle: {
-      backgroundColor: 'white',
+  {
+    activeTintColor: "black",
+    inactiveTintColor: "white",
+    barStyle: {
+      backgroundColor: "white",
       borderTopWidth: 1,
-      borderTopColor: '#000',
-  },
-  labeled: true,
-  tabBarOptions: {
+      borderTopColor: "#000",
+    },
+    labeled: true,
+    tabBarOptions: {
       labelStyle: {
-          fontWeight: 'bold',
+        fontWeight: "bold",
       },
-  },
-});
+    },
+  }
+);
 
 const swichNavigator = createSwitchNavigator({
-  
   loginFlow: createStackNavigator({
-        Home: Quiz,
-        Signup: SignupScreen,
-        SignUp2: SignUp2,
-        Signin: SigninScreen,
-        ForgotPass: ForgotPass
-    }),
-    mainFlow, 
-
-    mainFlow2: createMaterialBottomTabNavigator({
-        CCProfile: careercounselor,
-        Details: CCDetails
-    })
+    Home: Quiz,
+    Signup: SignupScreen,
+    SignUp2,
+    Signin: SigninScreen,
+    ForgotPass,
+  }),
+  mainFlow,
+  mainFlow2: createMaterialBottomTabNavigator({
+    CCProfile: careercounselor,
+    Details: CCDetails,
+  }),
 });
 
-const styles = StyleSheet.create({});
 const App = createAppContainer(swichNavigator);
 
 export default () => {
-    return (
-        <AuthProvider>
-            <App />
-        </AuthProvider>
-    );
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
 };
