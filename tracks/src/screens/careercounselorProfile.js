@@ -17,6 +17,9 @@ const Navbar = ({ navigation }) => {
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
               <Text style={styles.navItem}>Log Out</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Inbox')}>
+  <Text style={styles.navItem}>Inbox</Text>
+</TouchableOpacity>
       </View>
   );
 };

@@ -67,10 +67,13 @@ const SignupScreen2 = ({ navigation,route }) => {
           title="Sign Up"
           containerStyle={styles.buttonContainer}
           buttonStyle={styles.signUpButtonStyle}
-          onPress={() => {
-            console.log("Sign-up button clicked");
-            signup({ fullname, username, email, password, role });
-          }}
+             onPress={() => {
+  console.log("Sign-up button clicked");
+  signup(
+    { fullname, username, email, password, role },
+    () => navigation.navigate('Signin')
+  );
+}}
           
         />
       </Spacer>

@@ -22,22 +22,35 @@ const authReduser = (state, action) => {
 
 };
 
-const signup = (dispach) => async({ fullname, username, email, password, role }) => {
-    //make api req to sign up with that email and password
+const signup = (dispatch) => 
+  async ({ fullname, username, email, password, role }, callback) => {
     try {
-        console.log("Sending request to backend...");
-        const response = await trackerApi.post('/signup', { fullname, username, email, password, role });
-        console.log(response.data.token);
-        console.log("asdsdadsa");
-        await AsyncStorage.setItem('token', response.data.token);
-        dispach({ type: 'signup', payload: response.data.token });
-    } catch (err) {
-        console.log(err.message);
+      console.log("Sending request to backend...");
+      const response = await trackerApi.post('/signup', {
+        fullname,
+        username,
+        email,
+        password,
+        role,
+      });
 
-        dispach({ type: 'add_error', payload: 'Somthing went wrong with sign up' })
+      console.log(response.data.token);
+      await AsyncStorage.setItem('token', response.data.token);
+      dispatch({ type: 'signup', payload: response.data.token });
+
+      // ✅ Only call if provided
+      if (callback) {
+        callback();
+      }
+    } catch (err) {
+      console.log(err.message);
+      dispatch({
+        type: 'add_error',
+        payload: 'Something went wrong with sign up',
+      });
     }
-    //if we sign up ,modify our state,and say that we are authenticated
-};
+  };
+
 
 const Details = (dispatch) => async ({ name, expertise, courses, testimonials }) => {
     try {
@@ -119,3 +132,5 @@ const signout = (dispach) => {
 export const { Provider, Context } = createDataContext(
     authReduser, { signup, signin, signout, resetpass, Details }, { token: null, errorMessage: '' }
 );
+import { useContext } from 'react';
+export const useAuth = () => useContext(Context);

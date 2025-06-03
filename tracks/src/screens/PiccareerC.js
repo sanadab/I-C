@@ -1,3 +1,4 @@
+// ✅ Fixed PiccareerC.js for Job Seeker
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -23,13 +24,20 @@ const PiccareerC = ({ navigation }) => {
         const fetchDetails = async () => {
             try {
                 const token = await AsyncStorage.getItem('token');
+                if (!token) {
+                    console.warn('No token found');
+                    setLoading(false);
+                    return;
+                }
+
                 const response = await trackerApi.get('/details/all-counselors', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+
                 setCounselors(response.data);
                 setFilteredCounselors(response.data);
             } catch (err) {
-                console.error('Failed to fetch details:', err.message);
+                console.error('Failed to fetch details:', err.response?.data || err.message);
             } finally {
                 setLoading(false);
             }
@@ -49,25 +57,27 @@ const PiccareerC = ({ navigation }) => {
         setSearchQuery(query);
         const filtered = query
             ? counselors.filter((counselor) =>
-                counselor.name.toLowerCase().includes(query.toLowerCase()) ||
-                counselor.expertise.toLowerCase().includes(query.toLowerCase())
-            )
+                  counselor.name.toLowerCase().includes(query.toLowerCase()) ||
+                  counselor.expertise.toLowerCase().includes(query.toLowerCase())
+              )
             : counselors;
 
         setFilteredCounselors(filtered);
     };
 
-    const handleSignout = () => {
+    const handleSignout = async () => {
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('role');
         navigation.navigate('loginFlow');
     };
 
-const handleChat = (counselorId, counselorName) => {
-  console.log('Navigating with:', counselorId, counselorName); // Debug log
-  navigation.navigate('ChatScreen', { 
-    counselorId,
-    counselorName
-  });
-};
+    const handleChat = (counselorId, counselorName) => {
+        navigation.navigate('ChatScreen', {
+            counselorId,
+            counselorName,
+        });
+    };
+
     if (loading) {
         return (
             <View style={styles.loaderContainer}>
@@ -86,7 +96,6 @@ const handleChat = (counselorId, counselorName) => {
 
     return (
         <>
-            {/* Navbar */}
             <View style={styles.navbar}>
                 <TouchableOpacity onPress={() => navigation.navigate('Home')}>
                     <Text style={styles.navItem}>Home</Text>
@@ -112,12 +121,10 @@ const handleChat = (counselorId, counselorName) => {
                 />
             </View>
 
-            {/* Title */}
             <View style={styles.titleContainer}>
                 <Text style={styles.title}>Career Counselors</Text>
             </View>
 
-            {/* Search */}
             <View style={styles.searchContainer}>
                 <TextInput
                     style={styles.searchInput}
@@ -127,7 +134,6 @@ const handleChat = (counselorId, counselorName) => {
                 />
             </View>
 
-            {/* Content */}
             <ScrollView contentContainerStyle={styles.container}>
                 {filteredCounselors.length === 0 ? (
                     <Text style={styles.errorText}>
@@ -137,7 +143,6 @@ const handleChat = (counselorId, counselorName) => {
                     filteredCounselors.map((counselor, index) => (
                         <View key={counselor._id || index} style={styles.card}>
                             <Text style={styles.header}>{counselor.name}</Text>
-
                             <Text style={styles.subHeader}>Expertise:</Text>
                             <Text style={styles.text}>{counselor.expertise}</Text>
 
@@ -155,9 +160,7 @@ const handleChat = (counselorId, counselorName) => {
 
                             <TouchableOpacity
                                 style={styles.chatButton}
-                                onPress={() => handleChat(counselor._id, counselor.name)}
-                            
-                                >
+                                onPress={() => handleChat(counselor.userId, counselor.name)}>
                                 <Text style={styles.chatButtonText}>Chat with Counselor</Text>
                             </TouchableOpacity>
                         </View>
@@ -167,7 +170,6 @@ const handleChat = (counselorId, counselorName) => {
         </>
     );
 };
-
 const styles = StyleSheet.create({
     container: {
         padding: 20,

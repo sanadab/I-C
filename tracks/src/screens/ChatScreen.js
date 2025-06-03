@@ -8,49 +8,131 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import trackerApi from '../api/tracker';
 
-const ChatScreen = (props) => {
+const ChatScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const flatListRef = useRef(null);
 
-  // Get parameters safely
-  const counselorId = props.navigation.getParam('counselorId');
-  const counselorName = props.navigation.getParam('counselorName');
+  // Get parameters safely using getParam for React Navigation v5
+  const counselorId = navigation.getParam('counselorId');
+  const counselorName = navigation.getParam('counselorName');
 
-  // Debugging
   useEffect(() => {
-    console.log('All navigation props:', props.navigation);
-    console.log('Route params:', props.navigation.state.params);
-    console.log('Counselor ID:', counselorId);
-    console.log('Counselor Name:', counselorName);
-  }, []);
+    if (!counselorId) {
+      setError('No counselor selected');
+      setLoading(false);
+      return;
+    }
 
-  const sendMessage = () => {
-    if (newMessage.trim()) {
-      const newMsg = {
-        id: Date.now().toString(),
+    const fetchMessages = async () => {
+      try {
+        setError(null);
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await trackerApi.get(`/messages/${counselorId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Transform messages for the UI
+        const formattedMessages = response.data.map(msg => ({
+          id: msg._id,
+          text: msg.text,
+          sender: msg.sender === counselorId ? 'counselor' : 'me',
+          createdAt: msg.createdAt
+        }));
+        
+        setMessages(formattedMessages);
+      } catch (err) {
+        console.error('Failed to fetch messages:', err);
+        setError('Failed to load messages. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+    
+    // Set up polling for new messages (replace with WebSockets if possible)
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
+  }, [counselorId]);
+
+  const sendMessage = async () => {
+    const messageText = newMessage.trim();
+    if (!messageText || !counselorId) return;
+
+    const tempId = Date.now().toString();
+    let token;
+    
+    try {
+      token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Optimistically add message to UI
+      const optimisticMessage = {
+        id: tempId,
         sender: 'me',
-        text: newMessage,
+        text: messageText,
+        createdAt: new Date().toISOString()
       };
-      setMessages(prev => [...prev, newMsg]);
+      
+      setMessages(prev => [...prev, optimisticMessage]);
       setNewMessage('');
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      
+      // Send to server
+      const response = await trackerApi.post(
+        '/messages',
+        {
+          recipient: counselorId,
+          text: messageText
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      // Replace temporary message with server response
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId ? { 
+          id: response.data._id,
+          text: response.data.text,
+          sender: 'me',
+          createdAt: response.data.createdAt
+        } : msg
+      ));
+      
+    } catch (err) {
+      console.error('Failed to send message:', err);
+      // Remove optimistic message if failed
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
+      setError('Failed to send message. Please try again.');
     }
   };
 
   if (!counselorId) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>
-          {props.navigation.state.params 
-            ? 'Error: Missing counselor details in params'
-            : 'Error: No parameters received at all'}
-        </Text>
-        <Text>Received params: {JSON.stringify(props.navigation.state.params)}</Text>
+        <Text style={styles.errorText}>No counselor selected</Text>
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#000" />
       </View>
     );
   }
@@ -59,11 +141,16 @@ const ChatScreen = (props) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={80}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <Text style={styles.header}>Chat with {counselorName}</Text>
       
-      {/* Rest of your chat UI remains the same */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -73,14 +160,21 @@ const ChatScreen = (props) => {
             item.sender === 'me' ? styles.myMessage : styles.theirMessage
           ]}>
             <Text style={styles.messageText}>{item.text}</Text>
+            <Text style={styles.timeText}>
+              {new Date(item.createdAt).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </Text>
           </View>
         )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messageList}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
 
-      <View style={styles.inputRow}>
+      <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           placeholder="Type your message..."
@@ -88,8 +182,14 @@ const ChatScreen = (props) => {
           onChangeText={setNewMessage}
           onSubmitEditing={sendMessage}
           returnKeyType="send"
+          multiline
+          blurOnSubmit={false}
         />
-        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+        <TouchableOpacity 
+          onPress={sendMessage} 
+          style={styles.sendButton}
+          disabled={!newMessage.trim()}
+        >
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
@@ -97,65 +197,95 @@ const ChatScreen = (props) => {
   );
 };
 
-
-// Keep your existing styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
   },
   errorText: {
-    color: 'red',
-    fontSize: 16,
+    color: '#d32f2f',
     textAlign: 'center',
-    marginTop: 20,
   },
   header: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 16,
+    textAlign: 'center',
+    color: '#333',
   },
   messageList: {
-    paddingBottom: 10,
+    paddingBottom: 16,
   },
   messageBox: {
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 4,
+    padding: 12,
+    borderRadius: 12,
+    marginVertical: 6,
     maxWidth: '80%',
   },
   myMessage: {
-    backgroundColor: '#cce5ff',
+    backgroundColor: '#DCF8C6',
     alignSelf: 'flex-end',
+    borderTopRightRadius: 0,
   },
   theirMessage: {
-    backgroundColor: '#d4edda',
+    backgroundColor: '#ECECEC',
     alignSelf: 'flex-start',
+    borderTopLeftRadius: 0,
   },
   messageText: {
     fontSize: 16,
+    color: '#000',
   },
-  inputRow: {
+  timeText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    alignSelf: 'flex-end',
+  },
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
-    height: 40,
-    borderColor: '#ccc',
+    minHeight: 40,
+    maxHeight: 120,
+    borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 20,
-    paddingLeft: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     backgroundColor: '#fff',
     marginRight: 10,
   },
   sendButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#007AFF',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
+    opacity: 1,
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
   },
   sendButtonText: {
     color: 'white',

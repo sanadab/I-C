@@ -1,57 +1,69 @@
-import React, { useState, useContext } from "react";
-import { View, Text, TextInput, Button, FlatList, StyleSheet, Alert } from "react-native";
-import axios from "axios";
-import { Context as AuthContext } from '../context/AuthContext';
-import { create } from "../models/Details";
-import Spacer from "../components/Spacer";
+// === ✅ CCDetails.js (Frontend - fixed) ===
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import trackerApi from '../api/tracker';
 
 const CCDetails = () => {
-  const { state, Details } = useContext(AuthContext);
-  const [name, setName] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [course, setCourse] = useState("");
-  const [testimonial, setTestimonial] = useState("");
+  const [expertise, setExpertise] = useState('');
+  const [course, setCourse] = useState('');
   const [courses, setCourses] = useState([]);
+  const [testimonial, setTestimonial] = useState('');
   const [testimonials, setTestimonials] = useState([]);
+  const [name, setName] = useState('');
 
-  const userId = "your-user-id"; // Replace this with actual user ID
+  useEffect(() => {
+    const fetchName = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
 
-  const addCourse = () => {
+      const response = await trackerApi.get('/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setName(response.data.fullname);
+    };
+    fetchName();
+  }, []);
+
+  const handleAddCourse = () => {
     if (course.trim()) {
-      setCourses([...courses, course]);
-      setCourse("");
+      setCourses([...courses, course.trim()]);
+      setCourse('');
     }
   };
 
-  const addTestimonial = () => {
+  const handleAddTestimonial = () => {
     if (testimonial.trim()) {
-      setTestimonials([...testimonials, testimonial]);
-      setTestimonial("");
+      setTestimonials([...testimonials, testimonial.trim()]);
+      setTestimonial('');
     }
   };
 
-  const handleSubmit = () => {
-    if (!name || !expertise) {
-      Alert.alert("Error", "Please fill in all required fields.");
-      return;
+  const handleSubmit = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await trackerApi.post(
+        '/Details',
+        { expertise, courses, testimonials },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Alert.alert('Success', 'Profile submitted successfully');
+      setExpertise('');
+      setCourses([]);
+      setTestimonials([]);
+    } catch (err) {
+      console.error('Error submitting details:', err);
+      Alert.alert('Error', 'Something went wrong');
     }
-
-    Details({ name, expertise, courses, testimonials });
   };
 
   return (
-    <View style={styles.container}>
-      <Spacer></Spacer>
-      <Spacer></Spacer>
-      <Spacer></Spacer>
-      <Spacer></Spacer>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Career Counselor Profile</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-      />
+
+      <Text style={styles.label}>Name</Text>
+      <Text style={styles.nameText}>{name}</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Expertise"
@@ -59,75 +71,84 @@ const CCDetails = () => {
         onChangeText={setExpertise}
       />
 
-      <Text style={styles.sectionTitle}>Courses Offered</Text>
+      <Text style={styles.subheading}>Courses Offered</Text>
       <TextInput
         style={styles.input}
         placeholder="Add Course"
         value={course}
         onChangeText={setCourse}
       />
-      <Button title="Add Course" onPress={addCourse} />
-      <FlatList
-        data={courses}
-        renderItem={({ item }) => <Text style={styles.listItem}>{item}</Text>}
-        keyExtractor={(item, index) => index.toString()}
-      />
+      <TouchableOpacity onPress={handleAddCourse} style={styles.button}>
+        <Text style={styles.buttonText}>ADD COURSE</Text>
+      </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Testimonials</Text>
+      <Text style={styles.subheading}>Testimonials</Text>
       <TextInput
         style={styles.input}
         placeholder="Add Testimonial"
         value={testimonial}
         onChangeText={setTestimonial}
       />
-      <Button title="Add Testimonial" onPress={addTestimonial} />
-      <FlatList
-        data={testimonials}
-        renderItem={({ item }) => <Text style={styles.listItem}>{item}</Text>}
-        keyExtractor={(item, index) => index.toString()}
-      />
+      <TouchableOpacity onPress={handleAddTestimonial} style={styles.button}>
+        <Text style={styles.buttonText}>ADD TESTIMONIAL</Text>
+      </TouchableOpacity>
 
-      <Button title="Submit" onPress={handleSubmit} />
-    </View>
+      <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+        <Text style={styles.buttonText}>SUBMIT</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
     padding: 20,
+    backgroundColor: '#fff'
   },
   title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: 24,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginBottom: 20
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginTop: 20,
-    marginBottom: 8,
+  label: {
+    fontWeight: 'bold',
+    fontSize: 16
+  },
+  nameText: {
+    fontSize: 18,
+    marginBottom: 10
   },
   input: {
+    borderColor: '#ccc',
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    backgroundColor: "#FFFFFF",
-    padding: 12,
-    marginVertical: 6,
     borderRadius: 8,
-    fontSize: 16,
-  },
-  listItem: {
-    fontSize: 16,
-    color: "#374151",
-    backgroundColor: "#E5E7EB",
     padding: 10,
-    marginVertical: 4,
-    borderRadius: 6,
+    marginBottom: 10
   },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20
+  },
+  submitButton: {
+    backgroundColor: '#007bff',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10
+  },
+  buttonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold'
+  },
+  subheading: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 10,
+    marginBottom: 5
+  }
 });
+
 export default CCDetails;

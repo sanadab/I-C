@@ -1,60 +1,85 @@
+// === ✅ FIXED CounselorChatScreen.js ===
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import trackerApi from '../api/tracker';
 
 const CounselorChatScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [currentConversation, setCurrentConversation] = useState(null);
+  const [loading, setLoading] = useState(true);
   const flatListRef = useRef(null);
-  const { state } = useAuth();
-  const counselorId = state.userId;
+
   const jobSeekerId = navigation.getParam('jobSeekerId');
   const jobSeekerName = navigation.getParam('jobSeekerName');
 
   useEffect(() => {
-    const fetchConversation = async () => {
+    const fetchMessages = async () => {
       try {
-        const response = await trackerApi.get(`/messages/conversation/${counselorId}/${jobSeekerId}`);
-        setMessages(response.data);
-        setCurrentConversation(jobSeekerId);
+        const token = await AsyncStorage.getItem('token');
+        const response = await trackerApi.get(`/messages/${jobSeekerId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const formatted = response.data.map(msg => ({
+          id: msg._id,
+          text: msg.text,
+          sender: msg.sender === jobSeekerId ? 'seeker' : 'me',
+          createdAt: msg.createdAt,
+        }));
+
+        setMessages(formatted);
       } catch (err) {
-        console.error('Failed to fetch conversation:', err);
+        console.error('Failed to fetch messages:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchConversation();
-    const interval = setInterval(fetchConversation, 5000); // Refresh every 5 seconds
-
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
-  }, [counselorId, jobSeekerId]);
+  }, [jobSeekerId]);
 
   const sendMessage = async () => {
-    if (newMessage.trim()) {
-      try {
-        await trackerApi.post('/messages/send', {
-          senderId: counselorId,
-          receiverId: jobSeekerId,
-          content: newMessage
-        });
-        setNewMessage('');
-        // Optimistically update UI
-        setMessages(prev => [...prev, {
-          _id: Date.now().toString(),
-          sender: counselorId,
-          receiver: jobSeekerId,
-          content: newMessage,
-          timestamp: new Date()
-        }]);
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-      } catch (err) {
-        console.error('Failed to send message:', err);
-      }
+    const messageText = newMessage.trim();
+    if (!messageText) return;
+
+    const tempId = Date.now().toString();
+    setNewMessage('');
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+
+      setMessages(prev => [...prev, {
+        id: tempId,
+        text: messageText,
+        sender: 'me',
+        createdAt: new Date().toISOString(),
+      }]);
+
+      const response = await trackerApi.post('/messages', {
+        recipient: jobSeekerId,
+        text: messageText
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setMessages(prev => prev.map(msg =>
+        msg.id === tempId ? { ...msg, id: response.data._id } : msg
+      ));
+    } catch (err) {
+      console.error('Failed to send message:', err);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -63,26 +88,24 @@ const CounselorChatScreen = ({ navigation }) => {
       keyboardVerticalOffset={90}
     >
       <Text style={styles.header}>Chat with {jobSeekerName}</Text>
-
       <FlatList
         ref={flatListRef}
         data={messages}
         renderItem={({ item }) => (
           <View style={[
             styles.messageBox,
-            item.sender === counselorId ? styles.myMessage : styles.theirMessage
+            item.sender === 'me' ? styles.myMessage : styles.theirMessage
           ]}>
-            <Text style={styles.messageText}>{item.content}</Text>
-            <Text style={styles.timestamp}>
-              {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
+            <Text style={styles.messageText}>{item.text}</Text>
+            <Text style={styles.timestamp}>{
+              new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }</Text>
           </View>
         )}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messageList}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
-
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -103,6 +126,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   header: {
     fontSize: 20,

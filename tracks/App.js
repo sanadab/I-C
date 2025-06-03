@@ -10,7 +10,7 @@ import { createStackNavigator } from "react-navigation-stack";
 import { createMaterialBottomTabNavigator } from "react-navigation-material-bottom-tabs";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-// Screens
+// Screens (your existing imports)
 import SignupScreen from "./src/screens/SignupScreen";
 import SigninScreen from "./src/screens/SigninScreen";
 import UserProfile from "./src/screens/UserProfile";
@@ -48,6 +48,9 @@ import BackendQuiz1 from "./src/screens/BackendQuiz1";
 import BackendQuiz2 from "./src/screens/BackendQuiz2";
 import BackendQuiz3 from "./src/screens/BackendQuiz3";
 import Examp from "./src/screens/examp";
+import CounselorChatScreen from "./src/screens/CounselorChatScreen";
+import CounselorInboxScreen from "./src/screens/CounselorInboxScreen"
+import JobSeekerInboxScreen from "./src/screens/JobSeekerInboxScreen"
 import { Provider as AuthProvider } from "./src/context/AuthContext";
 
 const ExamStack = createStackNavigator({
@@ -89,6 +92,15 @@ const ChatStack = createStackNavigator({
   }
 });
 
+const CounselorChatStack = createStackNavigator({
+  CounselorChatScreen: {
+    screen: CounselorChatScreen,
+    navigationOptions: ({ navigation }) => ({
+      title: navigation.getParam('seekerName', 'Chat with Seeker')
+    })
+  }
+});
+
 const mainFlow = createMaterialBottomTabNavigator(
   {
     Profile: {
@@ -115,11 +127,69 @@ const mainFlow = createMaterialBottomTabNavigator(
         ),
       },
     },
-     Chat: {
+    Chat: {
       screen: ChatStack,
       navigationOptions: {
         tabBarIcon: ({ color }) => (
           <Icon name="chat" size={30} color={color} />
+        ),
+      },
+    },
+    Chats: {
+  screen: JobSeekerInboxScreen,
+  navigationOptions: {
+    tabBarIcon: ({ color }) => <Icon name="message" size={30} color={color} />,
+  },
+},
+  },
+  {
+    activeTintColor: "black",
+    inactiveTintColor: "white",
+    barStyle: {
+      backgroundColor: "white",
+      borderTopWidth: 1,
+      borderTopColor: "#000",
+    },
+    labeled: true,
+    tabBarOptions: {
+      labelStyle: {
+        fontWeight: "bold",
+      },
+    },
+  }
+);
+
+const counselorFlow = createMaterialBottomTabNavigator(
+  {
+    CCProfile: {
+      screen: careercounselor,
+      navigationOptions: {
+        tabBarIcon: ({ color }) => (
+          <Icon name="home" size={30} color={color} />
+        ),
+      },
+    },
+    Details: {
+      screen: CCDetails,
+      navigationOptions: {
+        tabBarIcon: ({ color }) => (
+          <Icon name="info" size={30} color={color} />
+        ),
+      },
+    },
+    CounselorChat: {
+      screen: CounselorChatStack,
+      navigationOptions: {
+        tabBarIcon: ({ color }) => (
+          <Icon name="chat" size={30} color={color} />
+        ),
+      },
+    },
+     ConversationsList: {
+      screen: CounselorInboxScreen,
+      navigationOptions: {
+        tabBarIcon: ({ color }) => (
+          <Icon name="info" size={30} color={color} />
         ),
       },
     },
@@ -150,10 +220,7 @@ const swichNavigator = createSwitchNavigator({
     ForgotPass,
   }),
   mainFlow,
-  mainFlow2: createMaterialBottomTabNavigator({
-    CCProfile: careercounselor,
-    Details: CCDetails,
-  }),
+  counselorFlow,
 });
 
 const App = createAppContainer(swichNavigator);
