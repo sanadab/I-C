@@ -87,7 +87,7 @@ const CounselorChatScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      <Text style={styles.header}>Chat with {jobSeekerName}</Text>
+      <Text style={styles.header}>Chat {jobSeekerName}</Text>
       <FlatList
         ref={flatListRef}
         data={messages}

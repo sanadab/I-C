@@ -1,10 +1,14 @@
-// === ✅ CCDetails.js (Frontend - fixed) ===
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import trackerApi from '../api/tracker';
+import Spacer from '../components/Spacer';
+import Navbar from '../components/Navbar2';
+// import Icon from 'react-native-vector-icons/MaterialIcons'; // optional
 
-const CCDetails = () => {
+const CCDetails = ({ navigation }) => {
   const [expertise, setExpertise] = useState('');
   const [course, setCourse] = useState('');
   const [courses, setCourses] = useState([]);
@@ -16,7 +20,6 @@ const CCDetails = () => {
     const fetchName = async () => {
       const token = await AsyncStorage.getItem('token');
       if (!token) return;
-
       const response = await trackerApi.get('/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -26,76 +29,110 @@ const CCDetails = () => {
   }, []);
 
   const handleAddCourse = () => {
-    if (course.trim()) {
-      setCourses([...courses, course.trim()]);
+    const trimmed = course.trim();
+    if (trimmed && !courses.includes(trimmed)) {
+      setCourses([...courses, trimmed]);
       setCourse('');
+    } else if (courses.includes(trimmed)) {
+      Alert.alert('Duplicate', 'Course already added.');
     }
   };
 
   const handleAddTestimonial = () => {
-    if (testimonial.trim()) {
-      setTestimonials([...testimonials, testimonial.trim()]);
+    const trimmed = testimonial.trim();
+    if (trimmed && !testimonials.includes(trimmed)) {
+      setTestimonials([...testimonials, trimmed]);
       setTestimonial('');
+    } else if (testimonials.includes(trimmed)) {
+      Alert.alert('Duplicate', 'Testimonial already added.');
     }
   };
 
   const handleSubmit = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
+      if (!expertise || courses.length === 0 || testimonials.length === 0) {
+        Alert.alert('Incomplete', 'Please fill in all fields.');
+        return;
+      }
+
       await trackerApi.post(
         '/Details',
         { expertise, courses, testimonials },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      Alert.alert('Success', 'Profile submitted successfully');
+
+      Alert.alert('Success', 'Profile submitted successfully!');
       setExpertise('');
       setCourses([]);
       setTestimonials([]);
     } catch (err) {
-      console.error('Error submitting details:', err);
-      Alert.alert('Error', 'Something went wrong');
+      console.error('Submission error:', err);
+      Alert.alert('Error', 'Something went wrong while submitting.');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Career Counselor Profile</Text>
+      <Navbar navigation={navigation} />
+      <Spacer />
+      <Text style={styles.title}>Add Your Info</Text>
+      <Spacer />
 
-      <Text style={styles.label}>Name</Text>
-      <Text style={styles.nameText}>{name}</Text>
-
+      <Text style={styles.label}>Major / Expertise</Text>
       <TextInput
         style={styles.input}
-        placeholder="Expertise"
+        placeholder="e.g. Software Engineering, Cybersecurity"
         value={expertise}
         onChangeText={setExpertise}
+        placeholderTextColor="#6c757d"
       />
+      <Spacer></Spacer>
+      <Text style={styles.label}>Courses Offered</Text>
+      <View style={styles.row}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder="Add a course"
+          value={course}
+          onChangeText={setCourse}
+          placeholderTextColor="#6c757d"
+        />
+        
+        <TouchableOpacity onPress={handleAddCourse} style={styles.iconButton}>
+          {/* <Icon name="add" size={24} color="#fff" /> */}
+          <Text style={styles.iconButtonText}>＋</Text>
+        </TouchableOpacity>
+        
+      </View>
+            <Spacer></Spacer>
 
-      <Text style={styles.subheading}>Courses Offered</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Add Course"
-        value={course}
-        onChangeText={setCourse}
-      />
-      <TouchableOpacity onPress={handleAddCourse} style={styles.button}>
-        <Text style={styles.buttonText}>ADD COURSE</Text>
-      </TouchableOpacity>
+      {courses.map((c, i) => (
+        <Text key={i} style={styles.listItem}>• {c}</Text>
+      ))}
 
-      <Text style={styles.subheading}>Testimonials</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Add Testimonial"
-        value={testimonial}
-        onChangeText={setTestimonial}
-      />
-      <TouchableOpacity onPress={handleAddTestimonial} style={styles.button}>
-        <Text style={styles.buttonText}>ADD TESTIMONIAL</Text>
-      </TouchableOpacity>
+      <Text style={styles.label}>Testimonials</Text>
+      <View style={styles.row}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder="Add a testimonial"
+          value={testimonial}
+          onChangeText={setTestimonial}
+          placeholderTextColor="#6c757d"
+        />
+        <TouchableOpacity onPress={handleAddTestimonial} style={styles.iconButton}>
+          {/* <Icon name="add" size={24} color="#fff" /> */}
+          <Text style={styles.iconButtonText}>＋</Text>
+        </TouchableOpacity>
+      </View>
+      {testimonials.map((t, i) => (
+        <Text key={i} style={styles.listItem}>• "{t}"</Text>
+      ))}
 
       <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
-        <Text style={styles.buttonText}>SUBMIT</Text>
+        <Text style={styles.submitText}>Submit Profile</Text>
       </TouchableOpacity>
+
+      <Spacer />
     </ScrollView>
   );
 };
@@ -103,52 +140,82 @@ const CCDetails = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: '#fff'
+    backgroundColor: '#f8f9fa',
+    flexGrow: 1,
   },
   title: {
-    fontSize: 24,
+    marginTop: 10,
+    fontSize: 36,
     textAlign: 'center',
     fontWeight: 'bold',
-    marginBottom: 20
+    color: '#222',
+    marginBottom: 20,
   },
   label: {
-    fontWeight: 'bold',
-    fontSize: 16
-  },
-  nameText: {
-    fontSize: 18,
-    marginBottom: 10
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 6,
   },
   input: {
-    borderColor: '#ccc',
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10
-  },
-  button: {
-    backgroundColor: '#007bff',
+    borderRadius: 10,
     padding: 12,
-    borderRadius: 8,
-    marginBottom: 20
+    fontSize: 16,
+    backgroundColor: '#fff',
+    color: '#000',
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  iconButton: {
+    backgroundColor: 'black',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  iconButtonText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: -1,
+  },
+  listItem: {
+    fontSize: 15,
+    color: '#444',
+    marginLeft: 10,
+    marginTop: 4,
   },
   submitButton: {
-    backgroundColor: '#007bff',
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 10
+    backgroundColor: '#034694',
+    paddingVertical: 16,
+    borderRadius: 30,
+    marginTop: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  buttonText: {
+  submitText: {
     color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold'
-  },
-  subheading: {
     fontSize: 18,
+    textAlign: 'center',
     fontWeight: '600',
-    marginTop: 10,
-    marginBottom: 5
-  }
+    letterSpacing: 1,
+  },
 });
 
 export default CCDetails;

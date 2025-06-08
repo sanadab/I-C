@@ -1,13 +1,7 @@
-// ✅ Fixed PiccareerC.js for Job Seeker
 import React, { useState, useEffect } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    ActivityIndicator,
-    TouchableOpacity,
-    TextInput,
+    View, Text, StyleSheet, ScrollView, ActivityIndicator,
+    TouchableOpacity, TextInput,
 } from 'react-native';
 import trackerApi from '../api/tracker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -56,19 +50,13 @@ const PiccareerC = ({ navigation }) => {
     const handleSearch = (query) => {
         setSearchQuery(query);
         const filtered = query
-            ? counselors.filter((counselor) =>
-                  counselor.name.toLowerCase().includes(query.toLowerCase()) ||
-                  counselor.expertise.toLowerCase().includes(query.toLowerCase())
+            ? counselors.filter((c) =>
+                  c.name.toLowerCase().includes(query.toLowerCase()) ||
+                  c.expertise.toLowerCase().includes(query.toLowerCase())
               )
             : counselors;
 
         setFilteredCounselors(filtered);
-    };
-
-    const handleSignout = async () => {
-        await AsyncStorage.removeItem('token');
-        await AsyncStorage.removeItem('role');
-        navigation.navigate('loginFlow');
     };
 
     const handleChat = (counselorId, counselorName) => {
@@ -86,14 +74,6 @@ const PiccareerC = ({ navigation }) => {
         );
     }
 
-    if (!counselors || counselors.length === 0) {
-        return (
-            <View style={styles.loaderContainer}>
-                <Text style={styles.errorText}>No career counselor data found.</Text>
-            </View>
-        );
-    }
-
     return (
         <>
             <View style={styles.navbar}>
@@ -103,7 +83,7 @@ const PiccareerC = ({ navigation }) => {
                 <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                     <Text style={styles.navItem}>Profile</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleSignout}>
+                <TouchableOpacity onPress={() => navigation.navigate('loginFlow')}>
                     <Text style={styles.navItem}>Log Out</Text>
                 </TouchableOpacity>
                 <RNPickerSelect

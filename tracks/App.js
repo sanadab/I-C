@@ -1,6 +1,5 @@
-import { LogBox, StyleSheet } from "react-native";
-LogBox.ignoreLogs(["Support for defaultProps will be removed"]);
-
+import { LogBox } from "react-native";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React from "react";
 import {
   createAppContainer,
@@ -10,7 +9,7 @@ import { createStackNavigator } from "react-navigation-stack";
 import { createMaterialBottomTabNavigator } from "react-navigation-material-bottom-tabs";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-// Screens (your existing imports)
+// Screens
 import SignupScreen from "./src/screens/SignupScreen";
 import SigninScreen from "./src/screens/SigninScreen";
 import UserProfile from "./src/screens/UserProfile";
@@ -49,10 +48,13 @@ import BackendQuiz2 from "./src/screens/BackendQuiz2";
 import BackendQuiz3 from "./src/screens/BackendQuiz3";
 import Examp from "./src/screens/examp";
 import CounselorChatScreen from "./src/screens/CounselorChatScreen";
-import CounselorInboxScreen from "./src/screens/CounselorInboxScreen"
-import JobSeekerInboxScreen from "./src/screens/JobSeekerInboxScreen"
+import CounselorInboxScreen from "./src/screens/CounselorInboxScreen";
+import JobSeekerInboxScreen from "./src/screens/JobSeekerInboxScreen";
 import { Provider as AuthProvider } from "./src/context/AuthContext";
 
+LogBox.ignoreLogs(["Support for defaultProps will be removed"]);
+
+// Exams Stack
 const ExamStack = createStackNavigator({
   Exam: Examp,
   IT: IT1,
@@ -83,64 +85,33 @@ const ExamStack = createStackNavigator({
   HRQuiz3,
 });
 
-const ChatStack = createStackNavigator({
-  ChatScreen: {
-    screen: ChatScreen,
-    navigationOptions: ({ navigation }) => ({
-      title: navigation.getParam('counselorName', 'Chat')
-    })
-  }
-});
-
-const CounselorChatStack = createStackNavigator({
-  CounselorChatScreen: {
-    screen: CounselorChatScreen,
-    navigationOptions: ({ navigation }) => ({
-      title: navigation.getParam('seekerName', 'Chat with Seeker')
-    })
-  }
-});
-
+// Bottom Tabs for Job Seeker (NO direct ChatScreen here)
 const mainFlow = createMaterialBottomTabNavigator(
   {
     Profile: {
       screen: UserProfile,
       navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="home" size={30} color={color} />
-        ),
+        tabBarIcon: ({ color }) => <Icon name="home" size={30} color={color} />,
       },
     },
     Exam: {
       screen: ExamStack,
       navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="assignment" size={30} color={color} />
-        ),
+        tabBarIcon: ({ color }) => <Icon name="assignment" size={30} color={color} />,
       },
     },
     PiccareerC: {
       screen: PiccareerC,
       navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="person" size={30} color={color} />
-        ),
-      },
-    },
-    Chat: {
-      screen: ChatStack,
-      navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="chat" size={30} color={color} />
-        ),
+        tabBarIcon: ({ color }) => <Icon name="person" size={30} color={color} />,
       },
     },
     Chats: {
-  screen: JobSeekerInboxScreen,
-  navigationOptions: {
-    tabBarIcon: ({ color }) => <Icon name="message" size={30} color={color} />,
-  },
-},
+      screen: JobSeekerInboxScreen,
+      navigationOptions: {
+        tabBarIcon: ({ color }) => <Icon name="message" size={30} color={color} />,
+      },
+    },
   },
   {
     activeTintColor: "black",
@@ -159,38 +130,44 @@ const mainFlow = createMaterialBottomTabNavigator(
   }
 );
 
-const counselorFlow = createMaterialBottomTabNavigator(
+// Job Seeker Flow: Tabs + ChatScreen (only triggered from inbox or selection)
+const jobSeekerFlow = createStackNavigator(
   {
-    CCProfile: {
+    Tabs: {
+      screen: mainFlow,
+      navigationOptions: { headerShown: false },
+    },
+    ChatScreen: {
+      screen: ChatScreen,
+      navigationOptions: ({ navigation }) => ({
+        title: navigation.getParam('counselorName', 'Chat'),
+      }),
+    },
+  },
+  {
+    initialRouteName: 'Tabs',
+  }
+);
+
+// Bottom Tabs for Counselor
+const counselorTabs = createMaterialBottomTabNavigator(
+  {
+    ConsulorProfile: {
       screen: careercounselor,
       navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="home" size={30} color={color} />
-        ),
+        tabBarIcon: ({ color }) => <Icon name="home" size={30} color={color} />,
       },
     },
     Details: {
       screen: CCDetails,
       navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="info" size={30} color={color} />
-        ),
+        tabBarIcon: ({ color }) => <Icon name="info" size={30} color={color} />,
       },
     },
-    CounselorChat: {
-      screen: CounselorChatStack,
-      navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="chat" size={30} color={color} />
-        ),
-      },
-    },
-     ConversationsList: {
+    ConversationsList: {
       screen: CounselorInboxScreen,
       navigationOptions: {
-        tabBarIcon: ({ color }) => (
-          <Icon name="info" size={30} color={color} />
-        ),
+        tabBarIcon: ({ color }) => <Icon name="message" size={30} color={color} />,
       },
     },
   },
@@ -211,6 +188,26 @@ const counselorFlow = createMaterialBottomTabNavigator(
   }
 );
 
+// Counselor Flow: Tabs + Chat
+const counselorFlow = createStackNavigator(
+  {
+    Tabs: {
+      screen: counselorTabs,
+      navigationOptions: { headerShown: false },
+    },
+    CounselorChat: {
+      screen: CounselorChatScreen,
+      navigationOptions: ({ navigation }) => ({
+        title: navigation.getParam('seekerName', 'Chat with Seeker'),
+      }),
+    },
+  },
+  {
+    initialRouteName: 'Tabs',
+  }
+);
+
+// App Switch Navigator
 const swichNavigator = createSwitchNavigator({
   loginFlow: createStackNavigator({
     Home: Quiz,
@@ -219,7 +216,7 @@ const swichNavigator = createSwitchNavigator({
     Signin: SigninScreen,
     ForgotPass,
   }),
-  mainFlow,
+  jobSeekerFlow, // 👈 updated here
   counselorFlow,
 });
 
@@ -228,7 +225,9 @@ const App = createAppContainer(swichNavigator);
 export default () => {
   return (
     <AuthProvider>
-      <App />
+      <SafeAreaProvider>
+        <App />
+      </SafeAreaProvider>
     </AuthProvider>
   );
 };

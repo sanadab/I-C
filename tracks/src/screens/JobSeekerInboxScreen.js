@@ -1,9 +1,8 @@
-// ✅ JobSeekerInboxScreen.js (Chat List Page for Job Seekers)
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import trackerApi from '../api/tracker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // ✅ NEW
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const JobSeekerInboxScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);

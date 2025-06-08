@@ -1,105 +1,78 @@
-import {React,useContext} from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from 'react-native-elements';
 import Spacer from '../components/Spacer';
+import Navbar from '../components/Navbar2';
 
-const Navbar = ({ navigation }) => {
-
-  return (
-      <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-              <Text style={styles.navItem}>Home</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-              <Text style={styles.navItem}>Profile</Text>
-          </TouchableOpacity>
-          {/* Triggering signout directly */}
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-              <Text style={styles.navItem}>Log Out</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Inbox')}>
-  <Text style={styles.navItem}>Inbox</Text>
-</TouchableOpacity>
-      </View>
-  );
-};
-
-
-const careercounselorProfile = ({ navigation }) => {
+const CareerCounselorProfile = ({ navigation }) => {
   return (
     <>
+    <Spacer></Spacer>
+    
       <Navbar navigation={navigation} />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Spacer>
-          <Text style={styles.titleStyle}>Profile Page</Text>
-          <Text style={styles.subtitleStyle}>What We Do</Text>
+       
+  
+          <Text style={styles.titleStyle}>Career Counselor</Text>
+          <Text style={styles.subtitleStyle}>Empowering Future Tech Talent</Text>
           <Text style={styles.descriptionStyle}>
-            The technology and high-tech industry is constantly growing, and there is high competition in the job market today for tech roles, especially for developers, cyber professionals, and project managers. Despite the great potential in the field, many job seekers are not always successful in passing the interview stage due to insufficient preparation or lack of soft skills (such as communication and presenting ideas), despite having strong technical abilities.
-            As part of the challenging job search process, job seekers are required to prepare for interviews that involve both technical fields (such as solving coding problems, data structures, and algorithms) and soft skills (such as teamwork, time management, and communication). They must face interviews with technical teams, negotiations with HR managers, and sometimes even discussions with professional consultants.
-            Although there are now various apps and websites focusing on job interview preparation, most offer limited solutions that do not address the diverse needs of job seekers. They either do not provide personalized tests, do not offer personal-level professional guidance, or lack access to relevant resources.
+            As a dedicated career counselor, you play a pivotal role in preparing job seekers for the competitive tech industry.
+            Your guidance equips them with both technical competencies and essential soft skills needed to excel in interviews and real-world job environments.
           </Text>
-          
-          {/* New section for topics to learn */}
-          <Text style={styles.subtitleStyle}>Topics You Will Learn</Text>
+
+          <Text style={styles.subtitleStyle}>Core Areas of Guidance</Text>
           <Text style={styles.descriptionStyle}>
-            In this app, you will be able to improve your technical and soft skills by practicing topics such as:
-            - Data Structures (Arrays, Linked Lists, Trees, Graphs)
-            - Algorithms (Sorting, Searching, Dynamic Programming)
-            - System Design
-            - Coding Challenges and Problem Solving
-            - Soft Skills (Teamwork, Time Management, Communication)
-            - Interview Techniques and Strategies
-            - Negotiation Skills for HR Discussions
+            In your sessions, you'll help candidates sharpen their abilities in:
+            {'\n'}• Data Structures & Algorithms
+            {'\n'}• System Design Fundamentals
+            {'\n'}• Real-World Coding Challenges
+            {'\n'}• Effective Communication & Team Collaboration
+            {'\n'}• Interview Preparation & Mock Sessions
+            {'\n'}• Time & Task Management Techniques
+            {'\n'}• HR & Salary Negotiation Best Practices
           </Text>
-        </Spacer>
+
+          <Text style={styles.subtitleStyle}>Your Mission</Text>
+          <Text style={styles.descriptionStyle}>
+            Inspire and guide aspiring tech professionals by tailoring personalized development plans and building their confidence to succeed in a fast-paced digital world.
+          </Text>
+       
       </ScrollView>
     </>
   );
 };
 
-careercounselorProfile.navigationOptions = {
-  headerLeft: null,  // Removes the back button or any title in the top left corner
-  headerTitle: null, // Removes the title (e.g., 'Exam') from the navbar
+CareerCounselorProfile.navigationOptions = {
+  headerLeft: null,
+  headerTitle: null,
 };
 
 const styles = StyleSheet.create({
-  navbar: {
-    marginTop: 100,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    backgroundColor: '#f8f8f8',
-    borderBottomColor: '#ddd',
-  },
-  navItem: {
-    fontSize: 18,
-    color: '#034694',
-    fontWeight: 'bold',
-
-  },
   titleStyle: {
     marginTop: 50,
-    fontSize: 48,
-    textAlign: 'center',
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#333',
+    textAlign: 'center',
+    color: '#1a1a1a',
   },
   subtitleStyle: {
-    fontSize: 24,
-    marginTop: 20,
+    fontSize: 22,
+    marginTop: 25,
     textAlign: 'center',
-    color: '#555',
+    color: '#3b3b3b',
+    fontWeight: '600',
   },
   descriptionStyle: {
-    marginTop: 20,
+    marginTop: 15,
     fontSize: 16,
+    lineHeight: 24,
     textAlign: 'left',
-    padding: 10,
-    color: 'black',
+    paddingHorizontal: 15,
+    color: '#444',
   },
   scrollContainer: {
-    paddingBottom: 20, // Adds some padding to the bottom for better scrolling behavior
+    paddingBottom: 40,
   },
 });
 
-export default careercounselorProfile;
+export default CareerCounselorProfile;

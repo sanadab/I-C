@@ -6,67 +6,64 @@ import { Alert } from 'react-native';
 
 
 
-const authReduser = (state, action) => {
-
+const authReducer = (state, action) => {
     switch (action.type) {
         case 'add_error':
             return {...state, errorMessage: action.payload };
-
         case 'signup':
+        case 'signin':
+        case 'resetpass':
             return { errorMessage: '', token: action.payload };
-
-
+        case 'signout':
+            return { token: null, errorMessage: '' };
         default:
             return state;
     }
-
 };
 
-const signup = (dispatch) => 
-  async ({ fullname, username, email, password, role }, callback) => {
+const signup = (dispatch) =>
+    async({ fullname, username, email, password, role }, callback) => {
+        try {
+            console.log("Sending request to backend...");
+            const response = await trackerApi.post('/signup', {
+                fullname,
+                username,
+                email,
+                password,
+                role,
+            });
+
+            console.log(response.data.token);
+            await AsyncStorage.setItem('token', response.data.token);
+            dispatch({ type: 'signup', payload: response.data.token });
+
+            // ✅ Only call if provided
+            if (callback) {
+                callback();
+            }
+        } catch (err) {
+            console.log(err.message);
+            dispatch({
+                type: 'add_error',
+                payload: 'Something went wrong with sign up',
+            });
+        }
+    };
+
+
+const Details = (dispatch) => async({ name, expertise, courses, testimonials }) => {
     try {
-      console.log("Sending request to backend...");
-      const response = await trackerApi.post('/signup', {
-        fullname,
-        username,
-        email,
-        password,
-        role,
-      });
-
-      console.log(response.data.token);
-      await AsyncStorage.setItem('token', response.data.token);
-      dispatch({ type: 'signup', payload: response.data.token });
-
-      // ✅ Only call if provided
-      if (callback) {
-        callback();
-      }
-    } catch (err) {
-      console.log(err.message);
-      dispatch({
-        type: 'add_error',
-        payload: 'Something went wrong with sign up',
-      });
-    }
-  };
-
-
-const Details = (dispatch) => async ({ name, expertise, courses, testimonials }) => {
-    try {
-        const token = await AsyncStorage.getItem('token'); 
+        const token = await AsyncStorage.getItem('token');
 
         const response = await trackerApi.post(
-            '/Details',
-            { name, expertise, courses, testimonials },
-            {
+            '/Details', { name, expertise, courses, testimonials }, {
                 headers: {
-                    Authorization: `Bearer ${token}`, 
+                    Authorization: `Bearer ${token}`,
                 },
             }
         );
 
-        dispatch({ type: 'DetailsSuccess' }); 
+        dispatch({ type: 'DetailsSuccess' });
 
         Alert.alert("Success", "Details submitted successfully!");
     } catch (err) {
@@ -92,7 +89,7 @@ const signin = (dispach) => async({ username, password, navigation }) => {
         await AsyncStorage.setItem('role', role); // Save the role
         dispach({ type: 'signin', payload: response.data.token });
         if (role === 'Career Counselor') {
-            navigation.navigate('CCProfile'); // Change to the correct profile screen
+            navigation.navigate('ConsulorProfile');
         } else if (role === 'Job Seeker') {
             navigation.navigate('Profile'); // Change to the correct profile screen
         }
@@ -122,15 +119,24 @@ const resetpass = (dispach) => async({ username, password }) => {
     //if we sign in ,modify our state,and say that we are in
 };
 
-const signout = (dispach) => {
-    return () => {
-        //try to sign out
+const signout = (dispatch) => async(callback) => {
+    try {
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('role');
+        dispatch({ type: 'signout' });
 
-        //if we sign out ,modify our state,and say that we are out
+        if (callback) {
+            callback();
+        }
+    } catch (err) {
+        console.error('Signout error:', err);
     }
 };
+
+
 export const { Provider, Context } = createDataContext(
-    authReduser, { signup, signin, signout, resetpass, Details }, { token: null, errorMessage: '' }
+    authReducer, { signup, signin, signout, resetpass, Details }, { token: null, errorMessage: '' }
 );
+
 import { useContext } from 'react';
 export const useAuth = () => useContext(Context);
