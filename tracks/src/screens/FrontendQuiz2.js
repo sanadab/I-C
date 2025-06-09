@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+import Spacer from '../components/Spacer';
 
 const FrontendQuiz2 = () => {
   const [questions, setQuestions] = useState([
@@ -120,35 +122,30 @@ const FrontendQuiz2 = () => {
       }
   ]);
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+ const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [resultData, setResultData] = useState([]);
   const [finalGrade, setFinalGrade] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(60); // Set 1 minute timer for each question
+  const [timeLeft, setTimeLeft] = useState(60);
 
   useEffect(() => {
     if (timeLeft > 0 && !showResults) {
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
+      const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
       return () => clearInterval(timer);
     } else if (timeLeft === 0 && !showResults) {
-      handleNextQuestion(); // Move to the next question when the timer reaches 0
+      handleNextQuestion();
     }
   }, [timeLeft, showResults]);
 
   const handleSelectAnswer = (answer) => {
-    setSelectedAnswers({
-      ...selectedAnswers,
-      [questions[currentQuestionIndex].id]: answer,
-    });
+    setSelectedAnswers({ ...selectedAnswers, [questions[currentQuestionIndex].id]: answer });
   };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setTimeLeft(60); // Reset the timer to 1 minute for the next question
+      setTimeLeft(60);
     } else {
       handleSubmit();
     }
@@ -156,13 +153,10 @@ const FrontendQuiz2 = () => {
 
   const handleSubmit = () => {
     let score = 0;
-    let results = questions.map((q) => {
+    const results = questions.map((q) => {
       const userAnswer = selectedAnswers[q.id];
       const isCorrect = userAnswer === q.correctAnswer;
-      if (isCorrect) {
-        score += 10;
-      }
-
+      if (isCorrect) score += 10;
       return {
         question: q.question,
         userAnswer: userAnswer || 'No answer',
@@ -178,137 +172,168 @@ const FrontendQuiz2 = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {!showResults && (
-        <>
-          <Text style={styles.header}>Frontend Mid-Level Quiz</Text>
-          <Text style={styles.timer}>Time Left: {timeLeft}s</Text>
-        </>
-      )}
+    <>
+      <Spacer />
+            <Spacer />
+      <Spacer />
 
-      {showResults ? (
-        <View style={styles.resultsContainer}>
-          <Text style={styles.gradeText}>Final Score: {finalGrade} / {questions.length * 10}</Text>
-          <FlatList
-            data={resultData}
-            renderItem={({ item }) => (
-              <View style={styles.resultItem}>
-                <Text style={styles.questionText}>{item.question}</Text>
-                <Text
-                  style={[styles.answerText, item.isCorrect ? { color: 'green' } : { color: 'red' }]}>{`Your Answer: ${item.userAnswer}`}</Text>
-                <Text style={styles.answerText}>Correct Answer: {item.correctAnswer}</Text>
-                <Text style={styles.explanationText}>Explanation: {item.explanation}</Text>
-              </View>
-            )}
-            keyExtractor={(item) => item.question}
-          />
-        </View>
-      ) : (
-        <View style={styles.questionContainer}>
-          <Text style={styles.questionText}>{questions[currentQuestionIndex].question}</Text>
-          {questions[currentQuestionIndex].options.map((option, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.optionButton, selectedAnswers[questions[currentQuestionIndex].id] === option && { backgroundColor: '#4CAF50' }]}
-              onPress={() => handleSelectAnswer(option)}
-            >
-              <Text style={styles.optionText}>{option}</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        {!showResults && (
+          <>
+            <Text style={styles.title}>Frontend Mid-Level Quiz</Text>
+            <Text style={styles.timer}>⏱️ {timeLeft}s</Text>
+            <View style={styles.card}>
+              <Text style={styles.question}>{questions[currentQuestionIndex].question}</Text>
+              {questions[currentQuestionIndex].options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.optionButton,
+                    selectedAnswers[questions[currentQuestionIndex].id] === option && styles.selectedOption,
+                  ]}
+                  onPress={() => handleSelectAnswer(option)}
+                >
+                  <Text style={styles.optionText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.button} onPress={handleNextQuestion}>
+              <Text style={styles.buttonText}>
+                {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Submit'}
+              </Text>
             </TouchableOpacity>
-          ))}
-        </View>
-      )}
+          </>
+        )}
 
-      {!showResults && (
-        <TouchableOpacity style={styles.buttonStyle} onPress={handleNextQuestion}>
-          <Text style={styles.buttonTextStyle}>
-            {currentQuestionIndex < questions.length - 1 ? 'Next Question' : 'Submit'}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </View>
+        {showResults && (
+          <>
+            <Text style={styles.resultHeader}>Final Score: {finalGrade} / {questions.length * 10}</Text>
+            {resultData.map((item, index) => (
+              <View key={index} style={styles.resultCard}>
+                <View style={styles.cardHeader}>
+                  <Icon name={item.isCorrect ? 'check-circle' : 'x-circle'} size={18} color={item.isCorrect ? '#2e7d32' : '#c62828'} />
+                  <Text style={styles.resultQuestion}>{item.question}</Text>
+                </View>
+                <Text style={[styles.answerText, { color: item.isCorrect ? '#2e7d32' : '#c62828' }]}>
+                  Your Answer: {item.userAnswer}
+                </Text>
+                <Text style={styles.correctAnswer}>Correct: {item.correctAnswer}</Text>
+                <Text style={styles.explanation}>Explanation: {item.explanation}</Text>
+              </View>
+            ))}
+          </>
+        )}
+      </ScrollView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
-    backgroundColor: '#f7f7f7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingBottom: 40,
+    backgroundColor: '#f9f9f9',
   },
-  header: {
-    color: '#0d47a1',
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: 'bold',
+  title: {
     fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1c1c1e',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   timer: {
     fontSize: 18,
+    fontWeight: '600',
     color: '#e53935',
     textAlign: 'center',
-    marginBottom: 10,
-    fontWeight: 'bold',
+    marginBottom: 15,
   },
-  resultsContainer: {
-    marginTop: 20,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-  },
-  gradeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0d47a1',
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
     marginBottom: 20,
   },
-  questionContainer: {
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  questionText: {
-    fontSize: 20,
+  question: {
+    fontSize: 18,
+    fontWeight: '600',
     color: '#333',
-    fontWeight: '500',
     marginBottom: 15,
   },
   optionButton: {
     padding: 12,
+    backgroundColor: '#fff',
+    borderColor: '#ccc',
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     marginBottom: 10,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
+  },
+  selectedOption: {
+    backgroundColor: '#cce5ff',
+    borderColor: '#004085',
   },
   optionText: {
     fontSize: 16,
-    color: '#555',
+    color: '#333',
   },
-  buttonStyle: {
-    width: '100%',
-    paddingVertical: 15,
-    backgroundColor: '#0d47a1',
-    borderRadius: 8,
+  button: {
+    backgroundColor: '#034694',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 30,
   },
-  buttonTextStyle: {
-    textAlign: 'center',
-    fontSize: 16,
+  buttonText: {
     color: '#fff',
+    fontSize: 17,
+    fontWeight: 'bold',
   },
-  resultItem: {
-    marginBottom: 20,
+  resultHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#0d47a1',
+    textAlign: 'center',
+    marginBottom: 25,
+  },
+  resultCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  resultQuestion: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+    color: '#1c1c1e',
   },
   answerText: {
-    fontSize: 16,
+    fontSize: 15,
     marginBottom: 5,
   },
-  explanationText: {
+  correctAnswer: {
+    fontSize: 15,
+    color: '#333',
+  },
+  explanation: {
     fontSize: 14,
-    color: 'gray',
-    marginBottom: 5,
+    color: '#555',
+    marginTop: 5,
   },
 });
 
