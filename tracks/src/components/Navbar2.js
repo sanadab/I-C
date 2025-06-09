@@ -29,17 +29,24 @@ const Navbar = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  navbar: {
-    marginTop: 100,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    backgroundColor: '#f8f8f8',
-    borderBottomColor: '#ddd',
-  },
+  
+navbar: {
+  // marginTop: 60,
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  alignItems: 'center',
+  paddingVertical: 15,
+  backgroundColor: '#0077b6',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.2,
+  shadowRadius: 5,
+  elevation: 5,
+},
+
   navItem: {
     fontSize: 18,
-    color: '#034694',
+    color: '#ffffff',
     fontWeight: 'bold',
   },
 });

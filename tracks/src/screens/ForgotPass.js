@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
         color: '#4CAF50', // Green button style for sign-in
     },
     homeButtonStyle: {
-        backgroundColor: '#034694',
+        backgroundColor: '#0077b6',
     },
     signInText: {
         fontSize: 16,

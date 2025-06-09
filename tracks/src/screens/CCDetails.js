@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import trackerApi from '../api/tracker';
 import Spacer from '../components/Spacer';
 import Navbar from '../components/Navbar2';
-// import Icon from 'react-native-vector-icons/MaterialIcons'; // optional
+import Icon from 'react-native-vector-icons/Feather';
+
 
 const CCDetails = ({ navigation }) => {
   const [expertise, setExpertise] = useState('');
@@ -73,60 +80,63 @@ const CCDetails = ({ navigation }) => {
   };
 
   return (
+      <View style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
+        <Spacer></Spacer>
+    <Navbar navigation={navigation} />
     <ScrollView contentContainerStyle={styles.container}>
-      <Navbar navigation={navigation} />
+      
       <Spacer />
       <Text style={styles.title}>Add Your Info</Text>
       <Spacer />
 
-      <Text style={styles.label}>Major / Expertise</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. Software Engineering, Cybersecurity"
-        value={expertise}
-        onChangeText={setExpertise}
-        placeholderTextColor="#6c757d"
-      />
-      <Spacer></Spacer>
-      <Text style={styles.label}>Courses Offered</Text>
-      <View style={styles.row}>
+      <View style={styles.inputCard}>
+        <Text style={styles.label}>Major / Expertise</Text>
         <TextInput
-          style={[styles.input, { flex: 1 }]}
-          placeholder="Add a course"
-          value={course}
-          onChangeText={setCourse}
+          style={styles.input}
+          placeholder="e.g. Software Engineering, Cybersecurity"
+          value={expertise}
+          onChangeText={setExpertise}
           placeholderTextColor="#6c757d"
         />
-        
-        <TouchableOpacity onPress={handleAddCourse} style={styles.iconButton}>
-          {/* <Icon name="add" size={24} color="#fff" /> */}
-          <Text style={styles.iconButtonText}>＋</Text>
-        </TouchableOpacity>
-        
       </View>
-            <Spacer></Spacer>
 
-      {courses.map((c, i) => (
-        <Text key={i} style={styles.listItem}>• {c}</Text>
-      ))}
-
-      <Text style={styles.label}>Testimonials</Text>
-      <View style={styles.row}>
-        <TextInput
-          style={[styles.input, { flex: 1 }]}
-          placeholder="Add a testimonial"
-          value={testimonial}
-          onChangeText={setTestimonial}
-          placeholderTextColor="#6c757d"
-        />
-        <TouchableOpacity onPress={handleAddTestimonial} style={styles.iconButton}>
-          {/* <Icon name="add" size={24} color="#fff" /> */}
-          <Text style={styles.iconButtonText}>＋</Text>
-        </TouchableOpacity>
+      <View style={styles.inputCard}>
+        <Text style={styles.label}>Courses Offered</Text>
+        <View style={styles.row}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            placeholder="Add a course"
+            value={course}
+            onChangeText={setCourse}
+            placeholderTextColor="#6c757d"
+          />
+          <TouchableOpacity onPress={handleAddCourse} style={styles.iconButton}>
+           <Icon name="plus-circle" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+        {courses.map((c, i) => (
+          <Text key={i} style={styles.listItem}>• {c}</Text>
+        ))}
       </View>
-      {testimonials.map((t, i) => (
-        <Text key={i} style={styles.listItem}>• "{t}"</Text>
-      ))}
+
+      <View style={styles.inputCard}>
+        <Text style={styles.label}>Testimonials</Text>
+        <View style={styles.row}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            placeholder="Add a testimonial"
+            value={testimonial}
+            onChangeText={setTestimonial}
+            placeholderTextColor="#6c757d"
+          />
+          <TouchableOpacity onPress={handleAddTestimonial} style={styles.iconButton}>
+            <Icon name="plus-circle" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+        {testimonials.map((t, i) => (
+          <Text key={i} style={styles.listItem}>• "{t}"</Text>
+        ))}
+      </View>
 
       <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
         <Text style={styles.submitText}>Submit Profile</Text>
@@ -134,6 +144,7 @@ const CCDetails = ({ navigation }) => {
 
       <Spacer />
     </ScrollView>
+    </View>
   );
 };
 
@@ -167,13 +178,26 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 10,
   },
+  inputCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
   },
   iconButton: {
-    backgroundColor: 'black',
+    backgroundColor: '#fff',
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -199,7 +223,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   submitButton: {
-    backgroundColor: '#034694',
+    backgroundColor: '#4F84C4',
     paddingVertical: 16,
     borderRadius: 30,
     marginTop: 30,

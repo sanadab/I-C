@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
       },
       homeButtonStyle: {
-        backgroundColor: '#034694',
+        backgroundColor: '#0077b6',
       },
       signInText: {
         fontSize: 16,

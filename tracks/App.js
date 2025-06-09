@@ -19,14 +19,14 @@ import ForgotPass from "./src/screens/ForgotPass";
 import Exam1 from "./src/screens/exam";
 import Behavioral from "./src/screens/Behavioral";
 import HumanResources from "./src/screens/HumanResourses";
-import FrontendQ1 from "./src/screens/FrontendDifficultyLevel";
+import Frontend from "./src/screens/FrontendDifficultyLevel";
 import IT1 from "./src/screens/IT";
 import ITQuiz1 from "./src/screens/ITQuiz1";
 import ITQuiz2 from "./src/screens/ITQuiz2";
 import ITQuiz3 from "./src/screens/ITQuiz3";
-import FrontendQuiz1 from "./src/screens/FrontendQuiz1";
-import FrontendQuiz2 from "./src/screens/FrontendQuiz2";
-import FrontendQuiz3 from "./src/screens/FrontendQuiz3";
+import Beginner from "./src/screens/FrontendQuiz1";
+import Intermediate from "./src/screens/FrontendQuiz2";
+import Advanced from "./src/screens/FrontendQuiz3";
 import FullstackQuiz1 from "./src/screens/FullstackQuiz1";
 import FullstackQuiz2 from "./src/screens/FullstackQuiz2";
 import FullstackQuiz3 from "./src/screens/FullstackQuiz3";
@@ -54,36 +54,46 @@ import { Provider as AuthProvider } from "./src/context/AuthContext";
 
 LogBox.ignoreLogs(["Support for defaultProps will be removed"]);
 
-// Exams Stack
-const ExamStack = createStackNavigator({
-  Exam: Examp,
-  IT: IT1,
-  Backend,
-  Fullstack,
-  QualityAssurance,
-  HR: HumanResources,
-  HR1,
-  FrontendQ1,
-  Behavioral,
-  Exam1,
-  BackendQuiz1,
-  BackendQuiz2,
-  BackendQuiz3,
-  FrontendQuiz1,
-  FrontendQuiz2,
-  FrontendQuiz3,
-  FullstackQuiz1,
-  FullstackQuiz2,
-  FullstackQuiz3,
-  ITQuiz1,
-  ITQuiz2,
-  ITQuiz3,
-  QAQuiz1,
-  QAQuiz2,
-  QAQuiz3,
-  HRQuiz2,
-  HRQuiz3,
-});
+const ExamStack = createStackNavigator(
+  {
+    Exam: {
+      screen: Examp,
+      navigationOptions: {
+        headerShown: false, // ✅ hides the "Exam" header
+      },
+    },
+    IT: IT1,
+    Backend,
+    Fullstack,
+    QualityAssurance,
+    HR: HumanResources,
+    HR1,
+    Frontend,
+    Behavioral,
+    Exam1,
+    BackendQuiz1,
+    BackendQuiz2,
+    BackendQuiz3,
+    Beginner,
+    Intermediate,
+    Advanced,
+    FullstackQuiz1,
+    FullstackQuiz2,
+    FullstackQuiz3,
+    ITQuiz1,
+    ITQuiz2,
+    ITQuiz3,
+    QAQuiz1,
+    QAQuiz2,
+    QAQuiz3,
+    HRQuiz2,
+    HRQuiz3,
+  },
+  {
+    initialRouteName: 'Exam',
+  }
+);
+
 
 // Bottom Tabs for Job Seeker (NO direct ChatScreen here)
 const mainFlow = createMaterialBottomTabNavigator(
@@ -100,7 +110,7 @@ const mainFlow = createMaterialBottomTabNavigator(
         tabBarIcon: ({ color }) => <Icon name="assignment" size={30} color={color} />,
       },
     },
-    PiccareerC: {
+    Consulors: {
       screen: PiccareerC,
       navigationOptions: {
         tabBarIcon: ({ color }) => <Icon name="person" size={30} color={color} />,

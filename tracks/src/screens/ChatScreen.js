@@ -20,7 +20,6 @@ const ChatScreen = ({ navigation }) => {
   const [error, setError] = useState(null);
   const flatListRef = useRef(null);
 
-  // Get parameters safely using getParam for React Navigation v5
   const counselorId = navigation.getParam('counselorId');
   const counselorName = navigation.getParam('counselorName');
 
@@ -35,34 +34,29 @@ const ChatScreen = ({ navigation }) => {
       try {
         setError(null);
         const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
+        if (!token) throw new Error('No token found');
 
         const response = await trackerApi.get(`/messages/${counselorId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        // Transform messages for the UI
-        const formattedMessages = response.data.map(msg => ({
+
+        const formatted = response.data.map(msg => ({
           id: msg._id,
           text: msg.text,
           sender: msg.sender === counselorId ? 'counselor' : 'me',
           createdAt: msg.createdAt
         }));
-        
-        setMessages(formattedMessages);
+
+        setMessages(formatted);
       } catch (err) {
-        console.error('Failed to fetch messages:', err);
-        setError('Failed to load messages. Please try again.');
+        console.error('Error fetching messages:', err);
+        setError('Failed to load messages.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchMessages();
-    
-    // Set up polling for new messages (replace with WebSockets if possible)
     const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
   }, [counselorId]);
@@ -73,51 +67,39 @@ const ChatScreen = ({ navigation }) => {
 
     const tempId = Date.now().toString();
     let token;
-    
+
     try {
       token = await AsyncStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
+      if (!token) throw new Error('No token found');
 
-      // Optimistically add message to UI
       const optimisticMessage = {
         id: tempId,
         sender: 'me',
         text: messageText,
         createdAt: new Date().toISOString()
       };
-      
+
       setMessages(prev => [...prev, optimisticMessage]);
       setNewMessage('');
-      
-      // Send to server
-      const response = await trackerApi.post(
-        '/messages',
-        {
-          recipient: counselorId,
-          text: messageText
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+
+      const response = await trackerApi.post('/messages', {
+        recipient: counselorId,
+        text: messageText
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === tempId
+            ? { ...msg, id: response.data._id }
+            : msg
+        )
       );
-      
-      // Replace temporary message with server response
-      setMessages(prev => prev.map(msg => 
-        msg.id === tempId ? { 
-          id: response.data._id,
-          text: response.data.text,
-          sender: 'me',
-          createdAt: response.data.createdAt
-        } : msg
-      ));
-      
     } catch (err) {
-      console.error('Failed to send message:', err);
-      // Remove optimistic message if failed
+      console.error('Send failed:', err);
       setMessages(prev => prev.filter(msg => msg.id !== tempId));
-      setError('Failed to send message. Please try again.');
+      setError('Message not sent. Try again.');
     }
   };
 
@@ -141,12 +123,12 @@ const ChatScreen = ({ navigation }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={90}
     >
       <Text style={styles.header}>Chat with {counselorName}</Text>
-      
+
       {error && (
-        <View style={styles.errorContainer}>
+        <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
@@ -155,20 +137,22 @@ const ChatScreen = ({ navigation }) => {
         ref={flatListRef}
         data={messages}
         renderItem={({ item }) => (
-          <View style={[
-            styles.messageBox,
-            item.sender === 'me' ? styles.myMessage : styles.theirMessage
-          ]}>
+          <View
+            style={[
+              styles.messageBox,
+              item.sender === 'me' ? styles.myMessage : styles.theirMessage
+            ]}
+          >
             <Text style={styles.messageText}>{item.text}</Text>
-            <Text style={styles.timeText}>
-              {new Date(item.createdAt).toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+            <Text style={styles.timestamp}>
+              {new Date(item.createdAt).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
               })}
             </Text>
           </View>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         contentContainerStyle={styles.messageList}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
@@ -180,14 +164,11 @@ const ChatScreen = ({ navigation }) => {
           placeholder="Type your message..."
           value={newMessage}
           onChangeText={setNewMessage}
-          onSubmitEditing={sendMessage}
-          returnKeyType="send"
           multiline
-          blurOnSubmit={false}
         />
-        <TouchableOpacity 
-          onPress={sendMessage} 
+        <TouchableOpacity
           style={styles.sendButton}
+          onPress={sendMessage}
           disabled={!newMessage.trim()}
         >
           <Text style={styles.sendButtonText}>Send</Text>
@@ -201,8 +182,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingHorizontal: 16,
-    paddingTop: 16,
   },
   loaderContainer: {
     flex: 1,
@@ -210,85 +189,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  errorContainer: {
-    backgroundColor: '#ffebee',
+  header: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  errorBox: {
+    backgroundColor: '#ffe6e6',
     padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
+    margin: 10,
+    borderRadius: 8,
   },
   errorText: {
     color: '#d32f2f',
     textAlign: 'center',
   },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-    color: '#333',
-  },
   messageList: {
-    paddingBottom: 16,
+    padding: 10,
   },
   messageBox: {
-    padding: 12,
-    borderRadius: 12,
-    marginVertical: 6,
     maxWidth: '80%',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   myMessage: {
-    backgroundColor: '#DCF8C6',
     alignSelf: 'flex-end',
-    borderTopRightRadius: 0,
+    backgroundColor: '#DCF8C6',
   },
   theirMessage: {
-    backgroundColor: '#ECECEC',
     alignSelf: 'flex-start',
-    borderTopLeftRadius: 0,
+    backgroundColor: '#ECECEC',
   },
   messageText: {
     fontSize: 16,
-    color: '#000',
   },
-  timeText: {
+  timestamp: {
     fontSize: 12,
     color: '#666',
-    marginTop: 4,
+    marginTop: 5,
     alignSelf: 'flex-end',
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    padding: 10,
     backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
   },
   input: {
     flex: 1,
-    minHeight: 40,
-    maxHeight: 120,
-    borderColor: '#ddd',
     borderWidth: 1,
+    borderColor: '#ddd',
     borderRadius: 20,
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#fff',
     marginRight: 10,
+    maxHeight: 100,
+    backgroundColor: '#fff',
   },
   sendButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#128C7E',
+    borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 20,
-    opacity: 1,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
+    justifyContent: 'center',
   },
   sendButtonText: {
-    color: 'white',
+    color: '#fff',
     fontWeight: 'bold',
   },
 });

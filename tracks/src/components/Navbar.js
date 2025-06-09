@@ -8,9 +8,6 @@ const Navbar = ({ navigation }) => {
 
   return (
     <View style={styles.navbar}>
-      {/* <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.navItem}>Home</Text>
-      </TouchableOpacity> */}
       <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
         <Text style={styles.navItem}>Profile</Text>
       </TouchableOpacity>
@@ -21,7 +18,7 @@ const Navbar = ({ navigation }) => {
       >
         <Text style={styles.navItem}>Log Out</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Inbox')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Chats')}>
         <Text style={styles.navItem}>Inbox</Text>
       </TouchableOpacity>
     </View>
@@ -30,16 +27,23 @@ const Navbar = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   navbar: {
-    marginTop: 100,
+    // marginTop: 60,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: 10,
-    backgroundColor: '#f8f8f8',
-    borderBottomColor: '#ddd',
+    alignItems: 'center',
+    paddingVertical: 15,
+    backgroundColor: '#0077b6', // Elegant deep blue
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   navItem: {
     fontSize: 18,
-    color: '#034694',
+    color: '#ffffff',
     fontWeight: 'bold',
   },
 });

@@ -11,7 +11,7 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../pictures/pic.png')} 
+        source={require('../pictures/logo2.png')} 
         style={styles.image}
       />
       <Text style={styles.title}>Welcome to Interview Coach</Text>
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   signInButtonStyle: {
-    backgroundColor: '#034694',
+    backgroundColor: '#0077b6',
   },
   modalOverlay: {
     flex: 1,
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   careerCounselorButtonStyle: {
-    backgroundColor: '#034694',
+    backgroundColor: '#0077b6',
   },
   closeText: {
     marginTop: 20,
